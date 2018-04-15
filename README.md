@@ -8,7 +8,7 @@ https://duproprio.com/
 I scraped data from duproprio to get some information about houses for sale.
 The result is then saved to a .csv file
 
-![alt text](https://github.com/patricktouchette/web-scraping/duproprio/duproprio-data.png?raw=true)
+![alt text](https://github.com/patricktouchette/web-scraping/blob/master/duproprio/duproprio-data.png?raw=true)
 
 # Pokemondb.net
 https://pokemondb.net/
@@ -19,4 +19,4 @@ All the data is stored inside a pandas dataframe and exported to a .csv file.
 
 I also made a GUI in python 3.6 and tkinter to view and sort some of the data.
 
-![alt text](https://github.com/patricktouchette/web-scraping/pokemondb.net/img/moves_interface.png?raw=true)
+![alt text](https://github.com/patricktouchette/web-scraping/blob/master/pokemondb.net/img/moves_interface.png?raw=true)
