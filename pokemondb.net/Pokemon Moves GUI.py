@@ -35,7 +35,7 @@ class Main_Application(tk.Frame):
         self.types = list(set(df['Type']))
 
         self.create_frames()
-        self.add_padding(self.grid_slaves())
+        self.add_padding(self.grid_subordinates())
         self.populate_rows(self.df[0:50])
 
     def create_frames(self):
@@ -50,18 +50,18 @@ class Main_Application(tk.Frame):
         self.moves_frame.grid(row=3, column=0, sticky=tk.W)
 
 
-    def add_padding(self, slaves):
+    def add_padding(self, subordinates):
         '''recursive funtion to loop through all the layers of frames and widgets'''
-        for slave in slaves:
-            print(slave.widgetName + '    ' + str(slave) + '    SLAVES' + str(slave.grid_slaves()))
-            if slave.widgetName == 'frame':
-                #slave.configure(highlightbackground="black", highlightcolor="black", highlightthickness=1) #For testing
-                slave.grid_configure(padx=FRAME_PADDING[0], pady=FRAME_PADDING[1])
+        for subordinate in subordinates:
+            print(subordinate.widgetName + '    ' + str(subordinate) + '    SLAVES' + str(subordinate.grid_subordinates()))
+            if subordinate.widgetName == 'frame':
+                #subordinate.configure(highlightbackground="black", highlightcolor="black", highlightthickness=1) #For testing
+                subordinate.grid_configure(padx=FRAME_PADDING[0], pady=FRAME_PADDING[1])
             else:
-                slave.grid_configure(padx=WIDGET_PADDING[0], pady=WIDGET_PADDING[1])
+                subordinate.grid_configure(padx=WIDGET_PADDING[0], pady=WIDGET_PADDING[1])
 
-            if len(slave.grid_slaves()) > 0:
-                self.add_padding(slave.grid_slaves())
+            if len(subordinate.grid_subordinates()) > 0:
+                self.add_padding(subordinate.grid_subordinates())
 
     def populate_rows(self, data):
         '''Displays the data contained in the dataframe that is passed to it'''
@@ -77,9 +77,9 @@ class Main_Application(tk.Frame):
 
     def clear_rows(self):
         '''Deletes all rows and widgets in the moves_frame'''
-        slaves = self.moves_frame.frame.grid_slaves()
-        for slave in slaves:
-            slave.destroy()
+        subordinates = self.moves_frame.frame.grid_subordinates()
+        for subordinate in subordinates:
+            subordinate.destroy()
 
     def clear_button(self):
         '''button that clears all user selections'''
@@ -124,8 +124,8 @@ class Main_Application(tk.Frame):
 
 
 class Title_Frame(tk.Frame):
-    def __init__(self, master, title):
-        tk.Frame.__init__(self, master)
+    def __init__(self, main, title):
+        tk.Frame.__init__(self, main)
         self.img = tk.PhotoImage(file='img/65.png')
         self.img_label = ttk.Label(self, image=self.img)
         self.title = ttk.Label(self, text=title, font=TITLE_FONT)
@@ -134,14 +134,14 @@ class Title_Frame(tk.Frame):
 
 class Search_Filters(tk.Frame):
     '''Creates the search box, type filter and category filter'''
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
+    def __init__(self, main):
+        tk.Frame.__init__(self, main)
         self.search_label = ttk.Label(self, text='Name/Effect', font = LABEL_FONT)
         self.type_label = ttk.Label(self, text='Type', font = LABEL_FONT)
         self.category_label = ttk.Label(self, text='Category', font = LABEL_FONT)
         self.search = tk.StringVar()
         self.search_entry = ttk.Entry(self, width=12, text=self.search, font = LABEL_FONT)
-        self.search_entry.bind("<Return>", master.populate_rows_by_selection)
+        self.search_entry.bind("<Return>", main.populate_rows_by_selection)
 
         self.chosen_type = tk.StringVar()
         self.type_combobox = ttk.Combobox(self, width=12, textvariable=self.chosen_type, state='readonly', font = LABEL_FONT)
@@ -149,16 +149,16 @@ class Search_Filters(tk.Frame):
                                     'Fighting','Poison','Ground','Flying','Psychic','Bug',
                                     'Rock','Ghost','Dragon','Dark','Steel','Fairy',]
         self.type_combobox.configure(height=len(self.type_combobox['values']))
-        self.type_combobox.bind("<<ComboboxSelected>>", master.populate_rows_by_selection)
+        self.type_combobox.bind("<<ComboboxSelected>>", main.populate_rows_by_selection)
         self.type_combobox.current(0)
 
         self.chosen_category = tk.StringVar()
         self.category_combobox = ttk.Combobox(self, width=12, textvariable=self.chosen_category, state='readonly')
         self.category_combobox['values'] = ['All', 'Physical', 'Special', 'Status', 'Z-Move']
-        self.category_combobox.bind("<<ComboboxSelected>>", master.populate_rows_by_selection)
+        self.category_combobox.bind("<<ComboboxSelected>>", main.populate_rows_by_selection)
         self.category_combobox.current(0)
 
-        self.button_clear = ttk.Button(self, text='Clear', command=master.clear_button)
+        self.button_clear = ttk.Button(self, text='Clear', command=main.clear_button)
 
         self.search_label.grid(row=0, column=0, sticky=tk.W)
         self.search_entry.grid(row=0, column=1, sticky=tk.W)
@@ -169,10 +169,10 @@ class Search_Filters(tk.Frame):
         self.button_clear.grid(row=0, column=6, sticky=tk.W)
 
 class Sort_Buttons(tk.Frame):
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
+    def __init__(self, main):
+        tk.Frame.__init__(self, main)
         self.font = MOVES_HEADINGS_FONT
-        self.names = list(master.df)
+        self.names = list(main.df)
         self.sort_column = 'Name'
         self.sort_direction = '▲' #▲ = ascending, ▼ = desencding
 
@@ -220,7 +220,7 @@ class Sort_Buttons(tk.Frame):
         self.sort_column = text
         self.sort_direction = button['text'].split()[1]
 
-        self.master.populate_rows_by_selection()
+        self.main.populate_rows_by_selection()
 
     def reset_buttons(self):
         for b in self.winfo_children():
@@ -231,8 +231,8 @@ class Sort_Buttons(tk.Frame):
 class Moves_Frame(tk.Frame):
     '''Creates a scrollable region to display all the moves data
     # https://stackoverflow.com/questions/3085696/adding-a-scrollbar-to-a-group-of-widgets-in-tkinter/3092341#3092341'''
-    def __init__(self, master):
-        tk.Frame.__init__(self, master)
+    def __init__(self, main):
+        tk.Frame.__init__(self, main)
         self.canvas = tk.Canvas(self, borderwidth=0, background="#e6e6e6") #ffffff
         self.canvas.configure(width=1000, height=500)
         self.frame = tk.Frame(self.canvas, background="#e6e6e6")
@@ -266,8 +266,8 @@ class Moves_Frame(tk.Frame):
             self.canvas.yview_scroll(-1, "units")
 
 class Moves_Row(tk.Frame):
-    def __init__(self,master, data, font):
-        tk.Frame.__init__(self, master)
+    def __init__(self,main, data, font):
+        tk.Frame.__init__(self, main)
         self.data = data
         self.label0 = tk.Label(self, text=self.data['Name'], width=20, font=MOVES_HEADINGS_FONT)
         self.label1 = tk.Label(self, text=self.data['Type'], width=8, font=font)
@@ -296,14 +296,14 @@ class Moves_Row(tk.Frame):
         self.justify_labels()
 
     def justify_labels(self):
-        for label in self.grid_slaves():
+        for label in self.grid_subordinates():
             label.config(anchor=tk.W, justify=tk.LEFT)
             label.grid_configure(pady=WIDGET_PADDING[1])
 
     def delete_rows(self):
         '''Deletes all move labels'''
-        for slave in self.grid_slaves():
-            slave.destroy()
+        for subordinate in self.grid_subordinates():
+            subordinate.destroy()
 
 def to_int(string):
     '''Converts strings to integers. Used to clean the dataframe'''
